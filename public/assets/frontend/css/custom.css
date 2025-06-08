@@ -1,0 +1,221 @@
+
+html {
+    background-image: url('/assets/frontend/img/bg-h1.jpg');
+  	background-position: relative;
+	background-attachment: fixed;
+  	background-size: 100% 113%;
+}
+
+body { 
+    font-family: sans-serif; 
+    margin:0;
+}
+
+table {
+    
+    width: 100%;
+    color: white;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #9A8547;
+    border:0;
+	border-spacing:0;
+}
+
+th:hover { 
+	color:white; 
+}
+
+.container td {
+    color:#bbbbbb;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.container th:first-child { 
+    width: 25px; 
+    padding-left:7px; 
+    padding-right:7px;
+}
+.container th:nth-child(2) { 
+    min-width: 100px; 
+}
+.container th:nth-child(4), th:nth-child(5), th:nth-child(6), th:nth-child(7), th:nth-child(8), th:nth-child(9) { width:150px; }
+.container th:last-child { 
+    min-width: 55px; 
+}
+
+.container th {
+	color:#e0a606;
+	font-size:15px;
+	white-space: nowrap;
+}
+.container th a:link { 
+	color: inherit; 
+	text-decoration: none; 
+}
+.container th a:visited { 
+    color: inherit; 
+}
+.container :hover { 
+    color:white; 
+}
+
+.container a {
+	max-width: 178px;
+	vertical-align: bottom;
+	padding-top:4px;
+	padding-bottom:3px;
+	padding-right:5px;
+	text-decoration:none;
+	font-weight: 700;
+	display: inline-block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.avatar-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 5px;
+    border: 2px solid transparent;
+}
+
+.avatar-online {
+    border-color: #28a745;
+}
+
+.avatar-offline {
+    border-color: #dc3545;
+}
+
+.playernick {
+    text-align: left;
+}
+
+.colunm-content {
+    text-align: center;
+}
+
+.colunm-content .hs-content {
+    white-space: nowrap;
+    text-align: center;
+}
+
+.hs-content a {
+    color: #ffffff;
+    font-size: 13px;
+    height: 17px;
+}
+
+.progress-container {
+    width: 60px;
+    background-color: lightgrey;
+    border-radius: 3px; 
+    height: 5px;
+    justify-content: space-around;
+    display: inline-block;
+    overflow: visible;
+    position: relative;
+    text-align: center;
+    position: relative;
+    top: -3px;
+}
+
+.progress-container a {
+    margin-top: -15px;
+	left: 0;
+	width: 100%;
+	position: absolute;
+	color:#bbbbbb;
+	font-size:10px;
+	height:17px;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #d3b35a; 
+    border-radius: 3px; 
+}
+
+.number-content { 
+    color: #E1D9D1;
+    line-height: 1.5;
+	font-size:17px;
+	font-weight: bold;
+  	background-position: center;
+	background-repeat: no-repeat;
+}
+
+.number-content:hover { 
+    color: white;
+}
+
+.number {
+    margin-left: 10px;
+}
+.number:hover { 
+    color:white; 
+}
+
+.xp6 .number-content {
+    color: #FBD701;
+    background-image: url('/assets/frontend/img/xp/xp-border-FBD701.png');
+}
+
+.xp5 .number-content {
+    color: #E94A46;
+    background-image: url('/assets/frontend/img/xp/xp-border-E94A46.png');
+}
+
+.xp4 .number-content {
+    color: #E315F1;
+    background-image: url('/assets/frontend/img/xp/xp-border-E315F1.png');
+}
+
+.xp3 .number-content {
+    color: #BD6DFA;
+    background-image: url('/assets/frontend/img/xp/xp-border-BD6DFA.png');
+}
+
+.xp2 .number-content {
+    color: #6A80E4;
+    background-image: url('/assets/frontend/img/xp/xp-border-6A80E4.png');
+}
+
+.xp1 .number-content {
+    color: #8BBCE6;
+    background-image: url('/assets/frontend/img/xp/xp-border-8BBCE6.png');
+}
+
+.rank-cell {
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: auto 30px; /* Mantém proporção, altura fixa em 32px */
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.rank-container {
+    width: 32px;
+    height: 32px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rank-level {
+    font-size: 0.7em;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
