@@ -13,33 +13,18 @@
 
     @if($allowGlobalView)
     <div class="attributes">
+        
         <div class="search-pagination-row">
-            <div class="search-content"> 
-                <form method="GET" action="{{ route('ranking.index') }}" class="search-form">
-                    <input type="text" 
-                        name="search" 
-                        value="{{ $currentSearch }}" 
-                        placeholder="Nick/Steam ID" 
-                        class="search-bar">
-                    <input type="hidden" name="limit" value="{{ $currentLimit }}">
-                    <input type="hidden" name="order" value="{{ $currentOrder }}">
-                    <input type="hidden" name="ip_server" value="{{ $currentIp }}">
-                    <button type="submit" class="button">Buscar</button>
-                </form>
-            </div>
 
-            {{-- Paginação --}}
+
             @if(isset($paginator) && $paginator->hasPages())
-            <div class="pagination-content">
                 <div class="pagination">
-                    {{-- Botão Anterior --}}
                     @if ($paginator->onFirstPage())
-                        <span class="btn-page disabled">Anterior</span>
+                        <span class="btn-page disabled"></span>
                     @else
                         <a class="btn-page" href="{{ $paginator->previousPageUrl() }}">Anterior</a>
                     @endif
 
-                    {{-- Links das Páginas --}}
                     @php
                         $currentPage = $paginator->currentPage();
                         $lastPage = $paginator->lastPage();
@@ -55,23 +40,38 @@
                         @endif
                     @endfor
 
-                    {{-- Botão Próxima --}}
-                    @if ($paginator->hasMorePages())
+                    @if (!$paginator->onFirstPage() && $paginator->hasMorePages())
                         <a class="btn-page" href="{{ $paginator->nextPageUrl() }}">Próxima</a>
                     @else
-                        <span class="btn-page disabled">Próxima</span>
+                        <span class="btn-page disabled"></span>
                     @endif
                 </div>
-
-                {{-- Informações da Paginação
-                <div class="pagination-info">
-                    <small>
-                        Mostrando {{ $paginator->firstItem() }} a {{ $paginator->lastItem() }} 
-                        de {{ $paginator->total() }} resultados
-                    </small>
-                </div>--}}
             </div>
             @endif
+
+
+
+
+
+
+
+
+            <div class="search-content"> 
+                <form method="GET" action="{{ route('ranking.index') }}" class="search-form">
+                    <input type="text" 
+                        name="search" 
+                        value="{{ $currentSearch }}" 
+                        placeholder="Nick/Steam ID" 
+                        class="search-bar">
+                    <input type="hidden" name="limit" value="{{ $currentLimit }}">
+                    <input type="hidden" name="order" value="{{ $currentOrder }}">
+                    <input type="hidden" name="ip_server" value="{{ $currentIp }}">
+                    <button type="submit" class="button">Buscar</button>
+                </form>
+            </div>
+
+            {{-- Paginação --}}
+            
         </div>
     </div>
     @endif

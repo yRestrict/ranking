@@ -228,20 +228,16 @@ th:hover {
 }
 
 .search-pagination-row {
-    padding-left: 10px;
-	text-shadow: none;
-	font-size:15px;
-	padding-top:12px;
-	white-space: nowrap;
-  	overflow: visible;
-    text-align:left;
+    padding: 12px 10px 0 10px;
+    font-size: 15px;
+    text-shadow: none;
+    white-space: nowrap;
 }
 
 .search-content {
-    float:right;  
-	white-space: nowrap;
-  	overflow: visible;
-  	display:inline;
+    float: right;
+    white-space: nowrap;
+    overflow: visible;
 }
 
 .search-bar {
@@ -272,14 +268,35 @@ th:hover {
     cursor:pointer;
 }
 
-
-.pagination {
-    padding-left: 10px;
-    text-shadow: none;
-    font-size: 15px;
-    padding-top: 12px;
-    white-space: nowrap;
-    overflow: visible;
-    text-align: left;
+.pagination  {
+    float: left;
 }
+
+
+.pagination .btn-page {
+	padding: 4px 7px;
+	border-radius: 5px;
+	color: #fff;
+	display: inline-block;
+	text-decoration: none;
+	font-weight: bold;
+	transition: background-color 0.2s ease-in-out;
+}
+
+.pagination .btn-page:hover {
+	background-color: #ddd;
+	color: #000;
+}
+
+.pagination .btn-page.active {
+	background-color: #d3b35a;
+	color: #fff;
+	pointer-events: none;
+}
+
+.pagination .btn-page.disabled {
+	pointer-events: none;
+	opacity: 0.5;
+}
+
 
