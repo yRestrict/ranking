@@ -11,7 +11,6 @@
 <body>
     @yield("content")
 
-    <!-- Formulário de busca (apenas para visualização global) -->
     @if($allowGlobalView)
     <div class="search-container mb-4">
         <form method="GET" action="{{ route('ranking.index') }}" class="d-flex gap-2">
