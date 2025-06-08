@@ -22,7 +22,7 @@
                     @if ($paginator->onFirstPage())
                         <span class="btn-page disabled"></span>
                     @else
-                        <a class="btn-page" href="{{ $paginator->previousPageUrl() }}">Anterior</a>
+                        <a class="btn-page" href="{{ $paginator->previousPageUrl() }}">«</a>
                     @endif
 
                     @php
@@ -41,7 +41,7 @@
                     @endfor
 
                     @if (!$paginator->onFirstPage() && $paginator->hasMorePages())
-                        <a class="btn-page" href="{{ $paginator->nextPageUrl() }}">Próxima</a>
+                        <a class="btn-page" href="{{ $paginator->nextPageUrl() }}">»</a>
                     @else
                         <span class="btn-page disabled"></span>
                     @endif
