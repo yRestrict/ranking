@@ -65,14 +65,17 @@
                             class="avatar-circle border {{ $borderClass }}">
                     @endif
                     
-                    <a>{{ $player->Nick }}</a>
+                    <a href="{{ route('player.show', ['player' => $player->Player]) }}">{{ $player->Nick }}</a>
+
                     @if($player->Steam)
                         <img src="{{ asset('assets/frontend/img/icon-steam.png') }}" alt="Steam"
                             width="10" height="10">                    
                     @endif
                     
                     <span class="server-name-simple">
-                        {{ $serverNames[$player->ServerIp] ?? $player->ServerIp }}
+                        <a href="steam://connect/{{ $player->ServerIp }}" title="Conectar ao servidor">
+                            {{ $serverNames[$player->ServerIp] ?? $player->ServerIp }}
+                        </a>
                     </span>
                    
                    <div>

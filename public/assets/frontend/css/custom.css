@@ -300,7 +300,13 @@ th:hover {
 }
 
 .server-name-simple {
-    color: #fa2105; /* Borda Vermelha */
+    color: #fa2105; 
+	font-weight: bold;
+	margin-left: 5px;
+}
+
+.server-name-simple a{
+    color: #fa2105; 
 	font-weight: bold;
 	margin-left: 5px;
 }

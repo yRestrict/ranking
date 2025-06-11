@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\PlayersStat;
+use App\Models\PlayerStats;
 
 /**
  * @group PlayersStat
 */
-class PlayersStatController extends Controller
+class PlayerController extends Controller
 {
-    public PlayersStat $model;
+    public PlayerStats $model;
 
     public function __construct()
     {
-        $this->model = new PlayersStat();
+        $this->model = new PlayerStats();
     }
 }

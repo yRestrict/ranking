@@ -2,14 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Frontend\RankSystemController;
+use App\Http\Controllers\Frontend\PlayerController;
 
 Route::get('/ranking', [RankSystemController::class, 'index'])->name('ranking.index');
 Route::get('/ranking/consult', [RankSystemController::class, 'consultRanking'])->name('ranking.consult');
+Route::get('/player/{player}', [PlayerController::class, 'show'])->name('player.show');
 
-
-Route::get('/top15.php', [RankSystemController::class, 'top15'])->name('ranking.top15');
-
-Route::get('/top15', [RankSystemController::class, 'top15'])->name('ranking.top15.friendly');
 
 Route::get('/api/player-position/{steamId}', function($steamId) {
     $controller = new RankSystemController();
@@ -31,12 +29,9 @@ Route::get('/api/generate-plugin-url/{steamId}', function($steamId) {
     $serverIp = request()->query('server');
     $order = request()->query('order');
     $position = request()->query('position');
-    
-    $url = $controller->generatePluginUrl($steamId, $serverIp, $order, $position);
-    
+        
     return response()->json([
         'steam_id' => $steamId,
-        'plugin_url' => $url,
         'server_ip' => $serverIp
     ]);
 })->name('api.generate.plugin.url');

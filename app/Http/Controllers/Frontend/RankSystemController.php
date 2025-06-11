@@ -58,18 +58,15 @@ class RankSystemController extends Controller
         ]);
     }
 
-    // Nova rota para compatibilidade com o plugin do servidor
     public function top15(Request $request)
     {
         $top = $request->query('top', 15);
         $player = $request->query('player', '');
         $order = $request->query('order', '13');
         $defaultOrder = $request->query('default_order', '13');
-        $style = $request->query('style', '0');
         $search = $request->query('search', '');
         $srv = $request->query('srv', '');
         
-        // Calcula a página baseada no parâmetro 'top'
         $page = max(1, ceil($top / self::ITEMS_PER_PAGE));
         
         $paginatedData = $this->getPaginatedRankingData($srv, $search, $order, $page, self::ITEMS_PER_PAGE);
@@ -85,22 +82,6 @@ class RankSystemController extends Controller
 
         $serverNames = $this->getServerNames();
 
-        // Se style=1, retorna apenas o conteúdo (para iframe)
-        if ($style == '1') {
-            return view('frontend.ranking.top15', [
-                'ranking' => $ranking,
-                'serverNames' => $serverNames,
-                'currentPlayer' => $player,
-                'currentOrder' => $order,
-                'currentSearch' => $search,
-                'currentServer' => $srv,
-                'totalRecords' => $totalRecords,
-                'currentPage' => $page,
-                'topPosition' => $top
-            ]);
-        }
-
-        // Se style=0, retorna a view completa
         return view('frontend.ranking.index', [
             'ranking' => $ranking,
             'paginator' => $this->createPaginator($ranking, $totalRecords, self::ITEMS_PER_PAGE, $page, $request),
@@ -116,7 +97,6 @@ class RankSystemController extends Controller
         ]);
     }
 
-    // Método para buscar posição específica de um jogador
     public function getPlayerPosition($steamId, $serverIp = null, $order = '13')
     {
         $query = DB::table('rank_system')
@@ -146,33 +126,11 @@ class RankSystemController extends Controller
         
         foreach ($rankedPlayers as $index => $player) {
             if ($player->{'Steam ID'} === $steamId) {
-                return $index + 1; // Posição (1-based)
+                return $index + 1;
             }
         }
 
-        return null; // Jogador não encontrado
-    }
-
-    // Método para gerar URL compatível com o plugin
-    public function generatePluginUrl($steamId, $serverIp, $order = null, $position = null)
-    {
-        $order = $order ?? config('ranking.default_order', '13');
-        
-        if ($position === null) {
-            $position = $this->getPlayerPosition($steamId, $serverIp, $order);
-        }
-
-        $url = url('/top15.php') . '?' . http_build_query([
-            'top' => $position ?: 15,
-            'player' => $steamId,
-            'order' => $order,
-            'default_order' => $order,
-            'style' => 1,
-            'search' => '',
-            'srv' => $serverIp
-        ]);
-
-        return $url;
+        return null;
     }
 
     public function consultRanking(Request $request)
@@ -373,8 +331,9 @@ class RankSystemController extends Controller
     private function getServerNames()
     {
         return [
-            '104.234.65.242:27400' => '[Servidor 1]',
-            '123.456.789.11:27015' => '[Servidor 2]',
+            '104.234.65.100:27400' => '[Servidor 1]',
+            '104.234.65.101:27400' => '[Servidor 2]',
+            '104.234.65.102:27400' => '[Servidor 3]',
         ];
     }
     
