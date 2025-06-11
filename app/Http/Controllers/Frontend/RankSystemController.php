@@ -40,12 +40,9 @@ class RankSystemController extends Controller
             return $player;
         });
  
-    
-
         $paginator = $this->createPaginator($ranking, $totalRecords, $limit, $page, $request);
 
         $serverNames = $this->getServerNames();
-
 
         return view('frontend.ranking.index', [
             'ranking' => $ranking,
@@ -61,9 +58,122 @@ class RankSystemController extends Controller
         ]);
     }
 
+    // Nova rota para compatibilidade com o plugin do servidor
+    public function top15(Request $request)
+    {
+        $top = $request->query('top', 15);
+        $player = $request->query('player', '');
+        $order = $request->query('order', '13');
+        $defaultOrder = $request->query('default_order', '13');
+        $style = $request->query('style', '0');
+        $search = $request->query('search', '');
+        $srv = $request->query('srv', '');
+        
+        // Calcula a página baseada no parâmetro 'top'
+        $page = max(1, ceil($top / self::ITEMS_PER_PAGE));
+        
+        $paginatedData = $this->getPaginatedRankingData($srv, $search, $order, $page, self::ITEMS_PER_PAGE);
+        
+        $ranking = collect($paginatedData['data']);
+        $totalRecords = $paginatedData['total'];
 
+        $maxHeadshots = $ranking->max('Headshots') ?: 1;
+        $ranking = $ranking->map(function($player) use ($maxHeadshots) {
+            $player->hsPercentage = $maxHeadshots > 0 ? round(($player->Headshots / $maxHeadshots) * 100) : 0;
+            return $player;
+        });
 
-    
+        $serverNames = $this->getServerNames();
+
+        // Se style=1, retorna apenas o conteúdo (para iframe)
+        if ($style == '1') {
+            return view('frontend.ranking.top15', [
+                'ranking' => $ranking,
+                'serverNames' => $serverNames,
+                'currentPlayer' => $player,
+                'currentOrder' => $order,
+                'currentSearch' => $search,
+                'currentServer' => $srv,
+                'totalRecords' => $totalRecords,
+                'currentPage' => $page,
+                'topPosition' => $top
+            ]);
+        }
+
+        // Se style=0, retorna a view completa
+        return view('frontend.ranking.index', [
+            'ranking' => $ranking,
+            'paginator' => $this->createPaginator($ranking, $totalRecords, self::ITEMS_PER_PAGE, $page, $request),
+            'currentLimit' => self::ITEMS_PER_PAGE,
+            'serverNames' => $serverNames,
+            'currentIp' => $srv,
+            'allowGlobalView' => $this->isValidIp($srv) ? 0 : 1,
+            'currentSearch' => $search,
+            'currentOrder' => $order,
+            'totalPages' => ceil($totalRecords / self::ITEMS_PER_PAGE),
+            'currentPage' => $page,
+            'highlightPlayer' => $player
+        ]);
+    }
+
+    // Método para buscar posição específica de um jogador
+    public function getPlayerPosition($steamId, $serverIp = null, $order = '13')
+    {
+        $query = DB::table('rank_system')
+            ->select([
+                'Steam ID',
+                DB::raw('SUM(XP) AS XP'),
+                DB::raw('SUM(Kills) AS Kills'),
+                DB::raw('SUM(Deaths) AS Deaths'),
+                DB::raw('SUM(Assists) AS Assists'),
+                DB::raw('SUM(Headshots) AS Headshots'),
+                DB::raw('SUM(MVP) AS MVP'),
+                DB::raw('SUM(`Rounds Won`) AS Rounds_Won'),
+                DB::raw('SUM(Stolen) AS Stolen'),
+                DB::raw('SUM(Recupered) AS Recupered'),
+                DB::raw('SUM(Captured) AS Captured'),
+                DB::raw('(SUM(Kills) - SUM(Deaths)) AS KD_Diff')
+            ])
+            ->groupBy('Steam ID');
+
+        if ($serverIp) {
+            $query->where('ServerIp', $serverIp);
+        }
+
+        $this->applyOrderBy($query, $order);
+
+        $rankedPlayers = $query->get();
+        
+        foreach ($rankedPlayers as $index => $player) {
+            if ($player->{'Steam ID'} === $steamId) {
+                return $index + 1; // Posição (1-based)
+            }
+        }
+
+        return null; // Jogador não encontrado
+    }
+
+    // Método para gerar URL compatível com o plugin
+    public function generatePluginUrl($steamId, $serverIp, $order = null, $position = null)
+    {
+        $order = $order ?? config('ranking.default_order', '13');
+        
+        if ($position === null) {
+            $position = $this->getPlayerPosition($steamId, $serverIp, $order);
+        }
+
+        $url = url('/top15.php') . '?' . http_build_query([
+            'top' => $position ?: 15,
+            'player' => $steamId,
+            'order' => $order,
+            'default_order' => $order,
+            'style' => 1,
+            'search' => '',
+            'srv' => $serverIp
+        ]);
+
+        return $url;
+    }
 
     public function consultRanking(Request $request)
     {
@@ -134,6 +244,10 @@ class RankSystemController extends Controller
                 DB::raw('SUM(Deaths) AS Deaths'),
                 DB::raw('SUM(MVP) AS MVP'),
                 DB::raw('SUM(`Rounds Won`) AS Rounds_Won'),
+                DB::raw('SUM(Stolen) AS Stolen'),
+                DB::raw('SUM(Recupered) AS Recupered'),
+                DB::raw('SUM(Captured) AS Captured'),
+                DB::raw('SUM(`Skill Range`) AS Skill_Range'),
                 'Flags',
                 DB::raw('MAX(Online) AS Online'),
                 DB::raw('MIN(New) AS New'),
@@ -174,35 +288,65 @@ class RankSystemController extends Controller
     private function applyOrderBy($query, $order)
     {
         $orderMapping = [
-            '0' => [DB::raw('SUM(XP)'), 'DESC'],
+            '0' => [DB::raw('SUM(XP)'), 'DESC', [['Nick', 'ASC']]],
             '1' => ['Nick', 'ASC'],
-            '2' => [DB::raw('SUM(Kills)'), 'DESC'],
-            '3' => [DB::raw('SUM(Assists)'), 'DESC'],
-            '4' => [DB::raw('SUM(Deaths)'), 'DESC'],
-            '6' => [DB::raw('SUM(Headshots)'), 'DESC'],
-            '10' => [DB::raw('SUM(`Rounds Won`)'), 'DESC'],
-            '11' => [DB::raw('SUM(MVP)'), 'DESC'],
-            '12' => [DB::raw('SUM(Level)'), 'DESC'],
-            '13' => [DB::raw('(SUM(Kills) - SUM(Deaths))'), 'DESC'], 
-            '14' => [DB::raw('SUM(XP)'), 'ASC'],
+            '2' => [DB::raw('SUM(Kills)'), 'DESC', [['Nick', 'ASC']]],
+            '3' => [DB::raw('SUM(Assists)'), 'DESC', [['Nick', 'ASC']]],
+            '4' => [DB::raw('SUM(Deaths)'), 'DESC', [['Nick', 'ASC']]],
+            '5' => [DB::raw('SUM(`Skill Range`)'), 'DESC', [['Nick', 'ASC']]],
+            '6' => [DB::raw('SUM(Headshots)'), 'DESC', [['Nick', 'ASC']]],
+            '7' => [DB::raw('SUM(Stolen)'), 'DESC', [['Nick', 'ASC']]],
+            '8' => [DB::raw('SUM(Recupered)'), 'DESC', [['Nick', 'ASC']]],
+            '9' => [DB::raw('SUM(Captured)'), 'DESC', [['Nick', 'ASC']]],
+            '10' => [DB::raw('SUM(`Rounds Won`)'), 'DESC', [['Nick', 'ASC']]],
+            '11' => [DB::raw('SUM(MVP)'), 'DESC', [['Nick', 'ASC']]],
+            '12' => [DB::raw('SUM(Level)'), 'DESC', [[DB::raw('SUM(XP)'), 'DESC']]],
+            '13' => [DB::raw('(SUM(Kills) - SUM(Deaths))'), 'DESC', [
+                [DB::raw('SUM(Assists)'), 'DESC'],
+                [DB::raw('SUM(Headshots)'), 'DESC'],
+                [DB::raw('SUM(MVP)'), 'DESC'],
+                [DB::raw('SUM(`Rounds Won`)'), 'DESC'],
+                [DB::raw('SUM(Stolen)'), 'DESC'],
+                [DB::raw('SUM(Recupered)'), 'DESC'],
+                [DB::raw('SUM(Captured)'), 'DESC'],
+                [DB::raw('SUM(XP)'), 'DESC'],
+                ['Nick', 'ASC']
+            ]],
+            
+            '14' => [DB::raw('SUM(XP)'), 'ASC', [['Nick', 'ASC']]],
             '15' => ['Nick', 'DESC'],
-            '16' => [DB::raw('SUM(Kills)'), 'ASC'],
-            '17' => [DB::raw('SUM(Assists)'), 'ASC'],
-            '18' => [DB::raw('SUM(Deaths)'), 'ASC'],
-            '20' => [DB::raw('SUM(Headshots)'), 'ASC'],
-            '24' => [DB::raw('SUM(`Rounds Won`)'), 'ASC'],
-            '25' => [DB::raw('SUM(MVP)'), 'ASC'],
-            '26' => [DB::raw('SUM(Level)'), 'ASC'],
+            '16' => [DB::raw('SUM(Kills)'), 'ASC', [['Nick', 'ASC']]],
+            '17' => [DB::raw('SUM(Assists)'), 'ASC', [['Nick', 'ASC']]],
+            '18' => [DB::raw('SUM(Deaths)'), 'ASC', [['Nick', 'ASC']]],
+            '19' => [DB::raw('SUM(`Skill Range`)'), 'ASC', [['Nick', 'ASC']]],
+            '20' => [DB::raw('SUM(Headshots)'), 'ASC', [['Nick', 'ASC']]],
+            '21' => [DB::raw('SUM(Stolen)'), 'ASC', [['Nick', 'ASC']]],
+            '22' => [DB::raw('SUM(Recupered)'), 'ASC', [['Nick', 'ASC']]],
+            '23' => [DB::raw('SUM(Captured)'), 'ASC', [['Nick', 'ASC']]],
+            '24' => [DB::raw('SUM(`Rounds Won`)'), 'ASC', [['Nick', 'ASC']]],
+            '25' => [DB::raw('SUM(MVP)'), 'ASC', [['Nick', 'ASC']]],
+            '26' => [DB::raw('SUM(Level)'), 'ASC', [[DB::raw('SUM(XP)'), 'ASC'], ['Nick', 'ASC']]],
         ];
 
         if (isset($orderMapping[$order])) {
-            $query->orderBy($orderMapping[$order][0], $orderMapping[$order][1]);
+            $orderConfig = $orderMapping[$order];
+            
+            $query->orderBy($orderConfig[0], $orderConfig[1]);
+            
+            if (isset($orderConfig[2]) && is_array($orderConfig[2])) {
+                foreach ($orderConfig[2] as $secondaryOrder) {
+                    $query->orderBy($secondaryOrder[0], $secondaryOrder[1]);
+                }
+            }
         } else {
             $query->orderByRaw('(SUM(Kills) - SUM(Deaths)) DESC')
                   ->orderByDesc(DB::raw('SUM(Assists)'))
                   ->orderByDesc(DB::raw('SUM(Headshots)'))
                   ->orderByDesc(DB::raw('SUM(MVP)'))
                   ->orderByDesc(DB::raw('SUM(`Rounds Won`)'))
+                  ->orderByDesc(DB::raw('SUM(Stolen)'))
+                  ->orderByDesc(DB::raw('SUM(Recupered)'))
+                  ->orderByDesc(DB::raw('SUM(Captured)'))
                   ->orderByDesc(DB::raw('SUM(XP)'))
                   ->orderBy('Nick');
         }
@@ -234,7 +378,6 @@ class RankSystemController extends Controller
         ];
     }
     
-
     private function isValidIp($serverIp)
     {
         return !empty($serverIp) && preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{4,5}$/', $serverIp);
