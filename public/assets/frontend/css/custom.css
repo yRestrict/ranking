@@ -299,4 +299,10 @@ th:hover {
 	opacity: 0.5;
 }
 
+.server-name-simple {
+    color: #fa2105; /* Borda Vermelha */
+	font-weight: bold;
+	margin-left: 5px;
+}
+
 

@@ -50,7 +50,18 @@
                             class="avatar-circle border {{ $borderClass }}">
                     @endif
                     
-                    <a>{{ $player->Nick }}</a><div>
+                    <a>{{ $player->Nick }}</a>
+                    @if($player->Steam)
+                        <img src="{{ asset('assets/frontend/img/icon-steam.png') }}" alt="Steam"
+                            width="10" height="10">                    
+                    @endif
+                    
+                    <span class="server-name-simple">
+                        {{ $serverNames[$player->ServerIp] ?? $player->ServerIp }}
+                    </span>
+                   
+                   
+                   <div>
                 </td>
                 <td class="colunm-content">{{ number_format($player->Kills) }}</td>
                 <td class="colunm-content">{{ number_format($player->Deaths) }}</td>

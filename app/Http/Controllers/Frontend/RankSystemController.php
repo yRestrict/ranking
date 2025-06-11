@@ -29,26 +29,29 @@ class RankSystemController extends Controller
 
         $allowGlobalView = $this->isValidIp($ip) ? 0 : 1;
 
-        // Obter dados paginados
         $paginatedData = $this->getPaginatedRankingData($ip, $search, $order, $page, $limit);
         
         $ranking = collect($paginatedData['data']);
         $totalRecords = $paginatedData['total'];
 
-        // Calcular porcentagem de headshots
         $maxHeadshots = $ranking->max('Headshots') ?: 1;
         $ranking = $ranking->map(function($player) use ($maxHeadshots) {
             $player->hsPercentage = $maxHeadshots > 0 ? round(($player->Headshots / $maxHeadshots) * 100) : 0;
             return $player;
         });
+ 
+    
 
-        // Criar objeto de paginação customizado
         $paginator = $this->createPaginator($ranking, $totalRecords, $limit, $page, $request);
+
+        $serverNames = $this->getServerNames();
+
 
         return view('frontend.ranking.index', [
             'ranking' => $ranking,
             'paginator' => $paginator,
             'currentLimit' => $limit,
+            'serverNames' => $serverNames,
             'currentIp' => $ip,
             'allowGlobalView' => $allowGlobalView,
             'currentSearch' => $search,
@@ -57,6 +60,10 @@ class RankSystemController extends Controller
             'currentPage' => $page
         ]);
     }
+
+
+
+    
 
     public function consultRanking(Request $request)
     {
@@ -79,13 +86,10 @@ class RankSystemController extends Controller
 
     private function getPaginatedRankingData($ip, $search, $order, $page, $limit)
     {
-        // Contar total de registros
         $totalRecords = $this->getTotalRecords($ip, $search);
         
-        // Calcular offset
         $offset = ($page - 1) * $limit;
         
-        // Obter dados da página atual
         $data = $this->getRankingData($ip, $search, $order, $limit, $offset);
         
         return [
@@ -159,7 +163,6 @@ class RankSystemController extends Controller
             'Avatar'
         ]);
 
-        // Aplicar ordenação baseada no parâmetro order
         $this->applyOrderBy($query, $order);
         
         return $query->offset($offset)
@@ -180,7 +183,7 @@ class RankSystemController extends Controller
             '10' => [DB::raw('SUM(`Rounds Won`)'), 'DESC'],
             '11' => [DB::raw('SUM(MVP)'), 'DESC'],
             '12' => [DB::raw('SUM(Level)'), 'DESC'],
-            '13' => [DB::raw('(SUM(Kills) - SUM(Deaths))'), 'DESC'], // Default
+            '13' => [DB::raw('(SUM(Kills) - SUM(Deaths))'), 'DESC'], 
             '14' => [DB::raw('SUM(XP)'), 'ASC'],
             '15' => ['Nick', 'DESC'],
             '16' => [DB::raw('SUM(Kills)'), 'ASC'],
@@ -195,7 +198,6 @@ class RankSystemController extends Controller
         if (isset($orderMapping[$order])) {
             $query->orderBy($orderMapping[$order][0], $orderMapping[$order][1]);
         } else {
-            // Ordenação padrão (order 13)
             $query->orderByRaw('(SUM(Kills) - SUM(Deaths)) DESC')
                   ->orderByDesc(DB::raw('SUM(Assists)'))
                   ->orderByDesc(DB::raw('SUM(Headshots)'))
@@ -219,11 +221,19 @@ class RankSystemController extends Controller
             ]
         );
 
-        // Preservar parâmetros da query string
         $paginator->appends($request->query());
 
         return $paginator;
     }
+
+    private function getServerNames()
+    {
+        return [
+            '104.234.65.242:27400' => '[Servidor 1]',
+            '123.456.789.11:27015' => '[Servidor 2]',
+        ];
+    }
+    
 
     private function isValidIp($serverIp)
     {
